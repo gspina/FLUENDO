@@ -1,0 +1,262 @@
+openapi: 3.0.0
+info:
+  title: API Documentation
+  version: 1.0.0
+  description: API documentation with primary endpoints.
+  
+servers:
+  - url: http://api.example.com/v1
+    description: DA CAMBIARE CON SERVER EFFETTIVO
+    
+paths:
+  /files:
+    post:
+      summary: Upload a JSON file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: File uploaded successfully.
+          
+  /auth/login:
+    post:
+      summary: Authenticate a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Authenticated successfully.
+        '401':
+          description: Authentication failed.
+
+  /db/environments:
+    get:
+      summary: Retrieve the database environments
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of database environments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      summary: Upload a database environment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+              required:
+                - username
+      responses:
+        '200':
+          description: Database environment uploaded successfully.
+    patch:
+      summary: Update a database environment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                environment_id:
+                  type: string
+                updates:
+                  type: object
+                  description: Object containing the fields to be updated with their new values.
+              required:
+                - environment_id
+                - updates
+      responses:
+        '200':
+          description: Database environment updated successfully.
+    delete:
+      summary: Delete a database environment
+      parameters:
+        - name: environment_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Database environment deleted successfully.
+
+  /db/templates:
+    get:
+      summary: Retrieve database templates
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of database templates.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      summary: Upload a database template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+              required:
+                - username
+      responses:
+        '200':
+          description: Database template uploaded successfully.
+    delete:
+      summary: Delete a database template
+      parameters:
+        - name: template_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Database template deleted successfully.
+    patch:
+      summary: Upgrade a database template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                environment_name:
+                  type: string
+              required:
+                - environment_name
+      responses:
+        '200':
+          description: Database template upgraded successfully.
+
+  /users:
+    get:
+      summary: Retrieve users
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - email
+                - password
+      responses:
+        '201':
+          description: User created successfully.
+    delete:
+      summary: Delete a user
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully.
+
+  /users/reset-password:
+    post:
+      summary: Reset user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+              required:
+                - username
+      responses:
+        '200':
+          description: Password reset successfully.
+
+  /users/reset-username:
+    post:
+      summary: Reset user username
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+              required:
+                - email
+      responses:
+        '200':
+          description: Username reset successfully.

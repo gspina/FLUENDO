@@ -1,0 +1,12 @@
+name: "Jupyter Workflow CodeQL configuration"
+queries:
+  - uses: security-and-quality
+paths-ignore:
+  - tests
+query-filters:
+  # Reason: false positive on function body ellipsis (issue 11351)
+  - exclude:
+      id: py/ineffectual-statement
+  # Reason: false positive on HasTraits class hierarchy
+  - exclude:
+      id: py/missing-call-to-init
