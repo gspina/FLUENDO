@@ -1,6 +1,6 @@
 #!/bin/bash
 cd ..
-#pip install -ve .
+pip install -ve .
 jlpm install
 jlpm build
 jupyter labextension develop . --overwrite
