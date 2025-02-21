@@ -18,6 +18,8 @@ Creazione dell'ambiente virtuale e installazione delle dipendenze:
 uv sync
 ```
 
+Installare node ed npm per la gestione delle estensioni dal sito ufficiale [node.js](https://nodejs.org/en/download/)
+
 ## Installazione del kernel jupyter-workflow
 
 Naviga alla cartella jupyter-workflow e installa il kernel:
