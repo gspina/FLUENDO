@@ -28,6 +28,12 @@ Installazione in modalità sviluppo:
 uv pip install -e .
 ```
 
+### Installazione del kernel jupyter-workflow in jupyter lab
+
+```sh
+python -m jupyter_workflow.ipython.install
+```
+
 ## Installazione dell'estensione
 
 Dalla root del progetto, esegui lo script di build per installare l'estensione:
@@ -36,7 +42,7 @@ Dalla root del progetto, esegui lo script di build per installare l'estensione:
 bash extension/test/myextension/src/build_extension.sh
 ```
 
-oppure esegui il comando se stai usando uv comegestore del progetto e dell'ambiente virtuale:
+oppure esegui il comando se stai usando uv come gestore del progetto e dell'ambiente virtuale:
 
 ```sh
 bash extension/test/myextension/src/uv_build_extension.sh
