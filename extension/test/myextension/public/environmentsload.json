@@ -1,0 +1,15 @@
+[
+    {
+      "id": "env1",
+      "name": "Ambiente di Sviluppo"
+    },
+    {
+      "id": "env2",
+      "name": "Ambiente di Test"
+    },
+    {
+      "id": "env3",
+      "name": "Ambiente di Produzione"
+    }
+]
+  

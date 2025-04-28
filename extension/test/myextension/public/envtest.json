@@ -1,0 +1,33 @@
+{
+    "cell_id": 1,
+    "editable": true,
+    "slideshow": {
+        "slide_type": ""
+    },
+    "tags": [],
+    "version": "v1.0",
+    "workflow": {
+        "cell_id": "cella_1",
+        "deployments": {
+            "docker-depl": {
+                "config": {
+                    "image": "python:3.13-slim",
+                    "rm": true,
+                    "stopSignal": "SIGKILL",
+                    "stopTimeout": 12
+                },
+                "type": "docker"
+            }
+        },
+        "interpreter": "python3",
+        "step": {
+            "autoin": true,
+            "out": []
+        },
+        "target": {
+            "deployment": "docker-depl"
+        },
+        "version": "v1.0"
+    },
+    "trusted": true
+}

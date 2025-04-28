@@ -10,62 +10,111 @@ import {
   INotebookTracker,
   NotebookActions,
 } from '@jupyterlab/notebook';
-/*
-import {
-  DocumentRegistry
-} from '@jupyterlab/docregistry';
-
-import {
-  ToolbarButton
-} from '@jupyterlab/apputils';
-
-import {
-  DisposableDelegate
-} from '@lumino/disposable';
-/*
-import {
-  Widget
-} from '@lumino/widgets';*/
-
-/*import { Cell } from '@jupyterlab/cells';*/
 
 import { addEnvDropdownToCell, addMetadataSection } from './utils';
 import { NotebookButtonExtension } from './NotebookButtonExtension';
+import { ContentsManager } from '@jupyterlab/services';
+
+
 /**
- * A global dictionary that stores envName -> JSON.
- * Both the form and the cell dropdowns will use this.
+ * Un dizionario globale per memorizzare envName -> JSON.
+ * Sia il form che il dropdown delle celle useranno questi dati.
  */
 export const GLOBAL_SAVED_ENVIRONMENTS: { [envName: string]: any } = {};
 export const GLOBAL_SAVED_TEMPLATE: { [templName: string]: any } = {};
 
+/* Funzione per caricare un file JSON e restituirne il contenuto come oggetto.
+*/
+async function loadJSON() {
+ // Percorso relativo del file JSON (configura il tuo bundler per rendere questo file accessibile)
+ const jsonFilePath = 'jupyter-extension-project/extension/test/myextension/src/envtest.json';
+ const contents = new ContentsManager();
+ const file = await contents.get(jsonFilePath);
+ const jsondata = file.content;
+ console.log("File JSON caricato:", jsondata);
+ return JSON.parse(jsondata);
+}
+
 /**
- * Our main plugin that:
- * 1) Adds a "Metadata Form" button to each notebook's toolbar.
- * 2) For each notebook, attaches the cell metadata editor and environment dropdown to each cell.
- * 3) Passes the INotebookTracker to our form widget so we can refresh cell dropdowns after saving.
+* Funzione per caricare il JSON, stampare a schermo i campi "nome" e "environment"
+* per ogni coppia presente nel file e salvare ogni ambiente in GLOBAL_SAVED_ENVIRONMENTS.
+*/
+function loadAndPrintJSON() {
+ console.log("URL corrente:", window.location.href);
+
+ loadJSON()
+   .then(jsondata => {
+     // Creiamo (o otteniamo) un contenitore per visualizzare i dati nel DOM
+     let container = document.getElementById('output');
+     if (!container) {
+       container = document.createElement('div');
+       container.id = 'output';
+       document.body.appendChild(container);
+     }
+     // Puliamo il contenitore prima di aggiungere nuovi elementi
+     container.innerHTML = '';
+
+     // Iteriamo sull'array di oggetti (ci aspettiamo che jsondata sia un array)
+     for (const item of jsondata) {
+       // Creiamo un div per ogni coppia nome-environment
+       const itemDiv = document.createElement('div');
+       itemDiv.style.border = '1px solid #ccc';
+       itemDiv.style.margin = '10px';
+       itemDiv.style.padding = '10px';
+
+       // Creiamo un elemento per stampare il "nome"
+       const nomeElem = document.createElement('h3');
+       nomeElem.textContent = "Nome: " + item.nome;
+       itemDiv.appendChild(nomeElem);
+
+       // Creiamo un elemento <pre> per stampare il JSON dell'"environment" in formato leggibile
+       const envElem = document.createElement('pre');
+       envElem.textContent = JSON.stringify(item.environment, null, 2);
+       itemDiv.appendChild(envElem);
+
+       container.appendChild(itemDiv);
+
+       // Salviamo nell'oggetto globale GLOBAL_SAVED_ENVIRONMENTS
+       GLOBAL_SAVED_ENVIRONMENTS[item.nome] = item.environment;
+     }
+     
+     // Verifica: stampiamo in console l'oggetto globale aggiornato
+     console.log("GLOBAL_SAVED_ENVIRONMENTS:", GLOBAL_SAVED_ENVIRONMENTS);
+   })
+   .catch(error => {
+     console.error("Errore durante il caricamento del JSON:", error);
+   });
+}
+/**
+ * Plugin principale che:
+ * 1) Aggiunge un pulsante "Metadata Form" alla toolbar di ogni notebook.
+ * 2) Aggiunge l'editor dei metadata e il dropdown dell'ambiente ad ogni cella del notebook.
+ * 3) Usa l'INotebookTracker per aggiornare il dropdown delle celle dopo il salvataggio.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'cell-metadata-editor-dropdown',
   autoStart: true,
   requires: [INotebookTracker],
-  activate: (app: JupyterFrontEnd, tracker: INotebookTracker) => { // INotebookTracker tracks the notebook widgets
-    console.log('Cell Metadata Editor + Env Dropdown Plugin activated! jup 3');
+  activate: (app: JupyterFrontEnd, tracker: INotebookTracker) => {
+    console.log('Cell Metadata Editor + Env Dropdown Plugin activated!');
 
-    // 1) Add a toolbar button to open our form
+    
+
+    // 1) Aggiungi il pulsante alla toolbar del notebook
     app.docRegistry.addWidgetExtension('Notebook', new NotebookButtonExtension(app, tracker));
 
-    // 2) Add our cell-level features whenever a new notebook is opened
+    // 2) Aggiungi le funzionalità ad ogni notebook aperto
     tracker.widgetAdded.connect((_, notebookPanel) => {
       notebookPanel.context.ready.then(() => {
         const { content } = notebookPanel;
 
-        // Add features to all existing cells
+        // Aggiungi le funzionalità a tutte le celle esistenti
         content.widgets.forEach(cell => {
           addMetadataSection(cell);
           addEnvDropdownToCell(cell);
         });
 
-        // Also watch for changes to the active cell
+        // Aggiungi le funzionalità alla cella attiva ogni volta che cambia
         content.activeCellChanged.connect(() => {
           const cell = content.activeCell;
           if (cell) {
@@ -74,11 +123,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
           }
         });
 
-        // Auto-trigger "Update Metadata" after cell execution
+        // Auto-trigger "Update Metadata" dopo l'esecuzione della cella
         NotebookActions.executed.connect((_, args) => {
           const { cell } = args;
           if (cell) {
-            console.log('Cell executed, simulating metadata update.');
+            console.log('Cell eseguita, simulazione aggiornamento metadata.');
             const metadataSection = cell.node.querySelector('.metadata-section');
             if (metadataSection) {
               const button = metadataSection.querySelector('button');
@@ -92,6 +141,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
   }
 };
+
+
+// Carica e stampa il file JSON all'attivazione del plugin
+loadAndPrintJSON();
+export default plugin;
+
 
 /**
  * A notebook toolbar button that opens our "MetadataFormWidget" in a new tab.
@@ -711,4 +766,3 @@ export function showTemporaryAlert(
   }, duration);
 }
 */
-export default plugin;

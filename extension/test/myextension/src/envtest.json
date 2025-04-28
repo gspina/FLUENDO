@@ -1,0 +1,81 @@
+[
+    {
+      "nome": "Ambiente di Sviluppo",
+      "environment": {
+        "cell_id": 1,
+        "editable": true,
+        "slideshow": {
+          "slide_type": ""
+        },
+        "tags": [],
+        "version": "v1.0",
+        "workflow": {
+          "cell_id": "cella_1",
+          "deployments": {
+            "docker-depl": {
+              "config": {
+                "image": "python:3.13-slim",
+                "rm": true,
+                "stopSignal": "SIGKILL",
+                "stopTimeout": 12
+              },
+              "type": "docker"
+            }
+          },
+          "interpreter": "python3",
+          "step": {
+            "autoin": true,
+            "out": []
+          },
+          "target": {
+            "deployment": "docker-depl"
+          },
+          "version": "v1.0"
+        },
+        "trusted": true
+      }
+    },
+    {
+      "nome": "Ambiente di Produzione",
+      "environment": {
+        "cell_id": 2,
+        "editable": false,
+        "slideshow": {
+          "slide_type": "regular"
+        },
+        "tags": [
+          "production",
+          "stable"
+        ],
+        "version": "v2.1",
+        "workflow": {
+          "cell_id": "cella_2",
+          "deployments": {
+            "kubernetes-depl": {
+              "config": {
+                "image": "node:16-alpine",
+                "rm": false,
+                "stopSignal": "SIGTERM",
+                "stopTimeout": 15
+              },
+              "type": "kubernetes"
+            }
+          },
+          "interpreter": "node",
+          "step": {
+            "autoin": false,
+            "out": [
+              "output1",
+              "output2"
+            ]
+          },
+          "target": {
+            "deployment": "kubernetes-depl"
+          },
+          "version": "v2.1"
+        },
+        "trusted": false
+      }
+    }
+  ]
+  
