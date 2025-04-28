@@ -104,6 +104,7 @@ class WorkflowIPythonKernel(IPythonKernel):
         # Call parent functionse
         metadata = super().init_metadata(parent)
         print("PARENT + METADATA", parent, metadata,"\n",10*"=*")
+        print("TEST")
         # If StreamFlow has been configured for this cell, store its configuration
         workflow_config = (
             parent["metadata"]
