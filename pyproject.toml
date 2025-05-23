@@ -1,7 +1,7 @@
 [project]
 name = "fluendo"
 version = "0.1.0"
-description = "Add your description here"
+description = "Fluendo Project"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
