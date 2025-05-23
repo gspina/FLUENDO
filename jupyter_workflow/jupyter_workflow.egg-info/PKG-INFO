@@ -1,0 +1,85 @@
+Metadata-Version: 2.2
+Name: jupyter-workflow
+Version: 0.1.0.dev4
+Summary: Jupyter Workflow Kernel
+Author-email: Iacopo Colonnelli <iacopo.colonnelli@unito.it>
+License: LGPL-3.0-or-later
+Project-URL: Homepage, https://jupyter-workflow.di.unito.it
+Project-URL: Package, https://pypi.org/project/jupyter-workflow
+Project-URL: Repository, https://github.com/alpha-unito/jupyter-workflow
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: MacOS
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: System :: Distributed Computing
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: cloudpickle==3.1.1
+Requires-Dist: ipython_genutils==0.2.0
+Requires-Dist: ipykernel==6.29.5
+Requires-Dist: jsonref==1.1.0
+Requires-Dist: jupyter_client==8.6.3
+Requires-Dist: nbclient==0.10.2
+Requires-Dist: nbformat==5.10.4
+Requires-Dist: streamflow==0.2.0.dev12
+Requires-Dist: traitlets==5.14.3
+Provides-Extra: bandit
+Requires-Dist: bandit==1.8.3; extra == "bandit"
+Provides-Extra: docs
+Requires-Dist: sphinx==8.2.1; extra == "docs"
+Requires-Dist: sphinx-jsonschema==1.19.1; extra == "docs"
+Requires-Dist: sphinx-rtd-theme==3.0.2; extra == "docs"
+Provides-Extra: lint
+Requires-Dist: black==25.1.0; extra == "lint"
+Requires-Dist: codespell==2.4.1; extra == "lint"
+Requires-Dist: flake8-bugbear==24.12.12; extra == "lint"
+Requires-Dist: isort==6.0.1; extra == "lint"
+Requires-Dist: pyupgrade==3.19.1; extra == "lint"
+Provides-Extra: test
+Requires-Dist: coverage[toml]==7.6.12; extra == "test"
+Requires-Dist: pytest==8.3.4; extra == "test"
+Requires-Dist: pytest-asyncio==0.25.3; extra == "test"
+Requires-Dist: pytest-xdist==3.6.1; extra == "test"
+Requires-Dist: testbook==0.4.2; extra == "test"
+
+[![CI Tests](https://github.com/alpha-unito/jupyter-workflow/actions/workflows/ci-tests.yml/badge.svg?branch=master)](https://github.com/alpha-unito/jupyter-workflow/actions/workflows/ci-tests.yml)
+[![coverage](https://codecov.io/gh/alpha-unito/jupyter-workflow/branch/master/graph/badge.svg?token=2024K42B7O)](https://codecov.io/gh/alpha-unito/jupyter-workflow)
+
+# Jupyter Workflow
+
+The Jupyter Workflow framework enables Jupyter Notebooks to describe complex workflows and to execute them in a distributed fashion on hybrid HPC-Cloud infrastructures. Jupyter Workflow relies on the [StreamFlow](https://github.com/alpha-unito/streamflow) WMS as its underlying runtime support.
+
+## Install Jupyter Workflow
+
+The Jupyter Workflow IPython kernel is available on [PyPI](https://pypi.org/project/jupyter-workflow/), so you can install it using pip.
+
+```bash
+pip install jupyter-workflow
+```
+
+Then, you can install it on a Jupyter Notebook server by running the following command.
+
+```bash
+python -m jupyter_workflow.ipython.install
+```
+
+Please note that Jupyter Workflow requires `python >= 3.9`. Then you can associate your Jupyter Notebooks with the newly installed kernel. Some examples can be found under the `examples` folder in the [GitHub repository](https://github.com/alpha-unito/jupyter-workflow).
+
+## Jupyter Workflow Team
+
+Iacopo Colonnelli <iacopo.colonnelli@unito.it> (creator and maintainer) 
+Alberto Mulone <alberto.mulone@unito.it> (maintainer)
+Sergio Rabellino <sergio.rabellino@unito.it> (maintainer)  
+Barbara Cantalupo <barbara.cantalupo@unito.it> (maintainer)  
+Marco Aldinucci <aldinuc@di.unito.it> (maintainer)  
