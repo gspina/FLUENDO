@@ -5,6 +5,7 @@ bandit-requirements.txt
 lint-requirements.txt
 pyproject.toml
 requirements.txt
+setup.cfg
 test-requirements.txt
 docs/requirements.txt
 jupyter_workflow/__init__.py

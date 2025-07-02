@@ -548,7 +548,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "jupyter-workflow", specifier = "<=0.1.0.dev4" },
+    { name = "jupyter-workflow", directory = "jupyter_workflow" },
     { name = "jupyterlab", specifier = ">=4.3.5" },
     { name = "myextension", directory = "extension/test/myextension" },
     { name = "streamflow", specifier = "==0.2.0.dev12" },
@@ -973,8 +973,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-workflow"
-version = "0.1.0.dev4"
-source = { registry = "https://pypi.org/simple" }
+source = { directory = "jupyter_workflow" }
 dependencies = [
     { name = "cloudpickle" },
     { name = "ipykernel" },
@@ -986,10 +985,34 @@ dependencies = [
     { name = "streamflow" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/56/c65e3559d217316cb13aeefacddcdc06b1e66683d97b6a3cee20f80425d6/jupyter_workflow-0.1.0.dev4.tar.gz", hash = "sha256:f35f8fdb22b72a08a889084c24b111a3ceca799fa7445711139f8f1ac93fb552", size = 47496, upload-time = "2025-03-02T19:04:15.515Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/08/c8588dd00e3926cc64d24c25dc29d3c86fbe990c35e497abdfae8377f0db/jupyter_workflow-0.1.0.dev4-py3-none-any.whl", hash = "sha256:9360cf38ee0e4c498e1e59343105aa86010ba7788326bf57063d4f90e8d24c7b", size = 54646, upload-time = "2025-03-02T19:04:13.35Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "bandit", marker = "extra == 'bandit'", specifier = "==1.8.3" },
+    { name = "black", marker = "extra == 'lint'", specifier = "==25.1.0" },
+    { name = "cloudpickle", specifier = "==3.1.1" },
+    { name = "codespell", marker = "extra == 'lint'", specifier = "==2.4.1" },
+    { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = "==7.6.12" },
+    { name = "flake8-bugbear", marker = "extra == 'lint'", specifier = "==24.12.12" },
+    { name = "ipykernel", specifier = "==6.29.5" },
+    { name = "ipython-genutils", specifier = "==0.2.0" },
+    { name = "isort", marker = "extra == 'lint'", specifier = "==6.0.1" },
+    { name = "jsonref", specifier = "==1.1.0" },
+    { name = "jupyter-client", specifier = "==8.6.3" },
+    { name = "nbclient", specifier = "==0.10.2" },
+    { name = "nbformat", specifier = "==5.10.4" },
+    { name = "pytest", marker = "extra == 'test'", specifier = "==8.3.4" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = "==0.25.3" },
+    { name = "pytest-xdist", marker = "extra == 'test'", specifier = "==3.6.1" },
+    { name = "pyupgrade", marker = "extra == 'lint'", specifier = "==3.19.1" },
+    { name = "sphinx", marker = "extra == 'docs'", specifier = "==8.2.1" },
+    { name = "sphinx-jsonschema", marker = "extra == 'docs'", specifier = "==1.19.1" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = "==3.0.2" },
+    { name = "streamflow", specifier = "==0.2.0.dev12" },
+    { name = "testbook", marker = "extra == 'test'", specifier = "==0.4.2" },
+    { name = "traitlets", specifier = "==5.14.3" },
 ]
+provides-extras = ["bandit", "docs", "lint", "test"]
 
 [[package]]
 name = "jupyterlab"

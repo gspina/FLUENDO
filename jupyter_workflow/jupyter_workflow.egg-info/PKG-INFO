@@ -1,4 +1,4 @@
-Metadata-Version: 2.2
+Metadata-Version: 2.4
 Name: jupyter-workflow
 Version: 0.1.0.dev4
 Summary: Jupyter Workflow Kernel
@@ -52,6 +52,7 @@ Requires-Dist: pytest==8.3.4; extra == "test"
 Requires-Dist: pytest-asyncio==0.25.3; extra == "test"
 Requires-Dist: pytest-xdist==3.6.1; extra == "test"
 Requires-Dist: testbook==0.4.2; extra == "test"
+Dynamic: license-file
 
 [![CI Tests](https://github.com/alpha-unito/jupyter-workflow/actions/workflows/ci-tests.yml/badge.svg?branch=master)](https://github.com/alpha-unito/jupyter-workflow/actions/workflows/ci-tests.yml)
 [![coverage](https://codecov.io/gh/alpha-unito/jupyter-workflow/branch/master/graph/badge.svg?token=2024K42B7O)](https://codecov.io/gh/alpha-unito/jupyter-workflow)
@@ -78,8 +79,8 @@ Please note that Jupyter Workflow requires `python >= 3.9`. Then you can associa
 
 ## Jupyter Workflow Team
 
-Iacopo Colonnelli <iacopo.colonnelli@unito.it> (creator and maintainer) 
+Iacopo Colonnelli <iacopo.colonnelli@unito.it> (creator and maintainer)
 Alberto Mulone <alberto.mulone@unito.it> (maintainer)
-Sergio Rabellino <sergio.rabellino@unito.it> (maintainer)  
-Barbara Cantalupo <barbara.cantalupo@unito.it> (maintainer)  
-Marco Aldinucci <aldinuc@di.unito.it> (maintainer)  
+Sergio Rabellino <sergio.rabellino@unito.it> (maintainer)
+Barbara Cantalupo <barbara.cantalupo@unito.it> (maintainer)
+Marco Aldinucci <aldinuc@di.unito.it> (maintainer)

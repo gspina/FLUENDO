@@ -8,9 +8,10 @@ dependencies = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.3.5",
     "streamflow==0.2.0.dev12",
-    "jupyter-workflow<=0.1.0.dev4",
+    "jupyter_workflow",
     "myextension",
 ]
 
 [tool.uv.sources]
 myextension = { path = "./extension/test/myextension" }
+jupyter_workflow = { path = "./jupyter_workflow" }
