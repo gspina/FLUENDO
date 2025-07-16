@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from collections.abc import MutableMapping
 from contextvars import ContextVar
 from functools import partial
 from io import StringIO
-from typing import MutableMapping, cast
+from typing import cast
 
 from ipykernel.iostream import IOPubThread, OutStream
 

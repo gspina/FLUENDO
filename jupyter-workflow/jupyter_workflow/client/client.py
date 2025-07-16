@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import MutableMapping, MutableSequence
 from contextvars import ContextVar
 from functools import partial
-from typing import Any, MutableMapping, MutableSequence, cast
+from typing import Any, cast
 
 import traitlets
 from jupyter_client import AsyncKernelClient, AsyncKernelManager, KernelManager
@@ -24,15 +25,13 @@ async def on_cell_execute(
     client: NotebookClient, cell: NotebookNode, cell_index: int
 ) -> None:
     if isinstance(client.kc, WorkflowKernelClient):
-        client.kc.metadata.set(
-            {**cell.metadata.get("workflow", {}), **{"cell_id": cell.id}}
-        )
+        client.kc.metadata.set(cell.metadata.get("workflow", {}) | {"cell_id": cell.id})
 
 
 class WorkflowKernelClient(AsyncKernelClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.metadata: ContextVar = ContextVar("metadata", default={})
+        self.metadata: ContextVar = ContextVar("metadata")
 
     def execute(
         self,
@@ -57,7 +56,7 @@ class WorkflowKernelClient(AsyncKernelClient):
             "user_expressions": user_expressions,
             "allow_stdin": allow_stdin,
             "stop_on_error": stop_on_error,
-            "workflow": self.metadata.get(),
+            "workflow": self.metadata.get({}),
         }
         msg = self.session.msg("execute_request", content)
         self.shell_channel.send(msg)
@@ -154,10 +153,8 @@ class WorkflowClient(NotebookClient):
                         cell["metadata"]["execution"] = {}
                     cell = {
                         "code": cell["source"],
-                        "metadata": {
-                            **cell["metadata"].get("workflow", {}),
-                            **{"cell_id": cell.id},
-                        },
+                        "metadata": cell["metadata"].get("workflow", {})
+                        | {"cell_id": cell.id},
                     }
                     cells[index] = cell
 

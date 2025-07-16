@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import asyncio
 import builtins
 import posixpath
-from typing import Any, MutableMapping, MutableSequence
+from collections.abc import MutableMapping, MutableSequence
+from typing import Any
 
 from streamflow.core import utils
 from streamflow.core.context import StreamFlowContext
-from streamflow.core.deployment import Connector, Location, Target
+from streamflow.core.deployment import Connector, ExecutionLocation, Target
 from streamflow.core.workflow import Job, Token, Workflow
-from streamflow.data import remotepath
+from streamflow.data.remotepath import StreamFlowPath
 from streamflow.deployment.utils import get_path_processor
 from streamflow.workflow.step import DeployStep
 from streamflow.workflow.token import ListToken
@@ -25,7 +28,7 @@ async def _register_path(context: StreamFlowContext, job: Job, path: str):
         else path_processor.basename(path)
     )
     for location in locations:
-        if await remotepath.exists(connector, location, path):
+        if await StreamFlowPath(path, context=context, location=location).exists():
             context.data_manager.register_path(
                 location=location, path=path, relpath=relpath
             )
@@ -47,7 +50,7 @@ async def get_file_token_from_ns(
     context: StreamFlowContext,
     connector: Connector,
     job: Job,
-    locations: MutableSequence[Location],
+    locations: MutableSequence[ExecutionLocation],
     output_directory: str,
     user_ns: MutableMapping[str, Any],
     value: Any,
@@ -55,35 +58,19 @@ async def get_file_token_from_ns(
 ) -> Token:
     path_processor = get_path_processor(connector)
     if value is not None:
-        pattern = (
-            value
-            if path_processor.isabs(value)
-            else path_processor.join(output_directory, value)
-        )
-        value = utils.flatten_list(
-            await asyncio.gather(
-                *(
-                    asyncio.create_task(
-                        remotepath.resolve(
-                            connector=connector, location=location, pattern=pattern
-                        )
-                    )
-                    for location in locations
-                )
+        paths = []
+        for location in locations:
+            outdir = StreamFlowPath(
+                output_directory, context=context, location=location
             )
-        )
-        value = [
-            v if path_processor.isabs(v) else path_processor.join(output_directory, v)
-            for v in value
-        ]
+            paths.extend([str(p) async for p in outdir.glob(value)])
         await asyncio.gather(
             *(
-                asyncio.create_task(_register_path(context=context, job=job, path=v))
-                for v in value
+                asyncio.create_task(_register_path(context=context, job=job, path=p))
+                for p in paths
             )
         )
-        if len(value) == 1:
-            value = value[0]
+        value = paths[0] if len(paths) == 1 else paths
     else:
         value = user_ns.get(value_from)
         if not path_processor.isabs(value):

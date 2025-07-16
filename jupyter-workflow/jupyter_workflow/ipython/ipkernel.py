@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import sys
 import time
@@ -9,6 +11,7 @@ from ipykernel.ipkernel import IPythonKernel
 from ipykernel.jsonutil import json_clean
 from ipython_genutils.py3compat import safe_unicode
 from jupyter_client.session import extract_header
+from streamflow.core.exception import WorkflowDefinitionException
 
 from jupyter_workflow.config.validator import validate
 from jupyter_workflow.ipython.shell import StreamFlowInteractiveShell
@@ -37,19 +40,18 @@ class WorkflowIPythonKernel(IPythonKernel):
     ]
 
     async def auto_inputs_request(self, stream, ident, parent):
-        try:
-            content = parent["content"]
-            code = content["code"]
-        except BaseException as e:
-            self.log.error(e)
-            self.log.error("%s", parent)
+        if code := parent.get("content", {}).get("code"):
+            reply_content = await self.do_auto_inputs_request(code)
+            # Send the reply.
+            reply_content = json_clean(reply_content)
+            reply_msg = self.session.msg(
+                "auto_inputs_reply", reply_content, parent=parent
+            )
+            self.session.send(stream, reply_msg, ident=ident)
+            self.log.debug("%s", reply_msg)
+        else:
+            self.log.error("Invalid workflow definition: %s", parent)
             return
-        reply_content = await self.do_auto_inputs_request(code)
-        # Send the reply.
-        reply_content = json_clean(reply_content)
-        reply_msg = self.session.msg("auto_inputs_reply", reply_content, parent=parent)
-        self.session.send(stream, reply_msg, ident=ident)
-        self.log.debug("%s", reply_msg)
 
     async def do_auto_inputs_request(self, code):
         shell = self.shell
@@ -103,8 +105,6 @@ class WorkflowIPythonKernel(IPythonKernel):
     def init_metadata(self, parent):
         # Call parent functionse
         metadata = super().init_metadata(parent)
-        print("PARENT + METADATA", parent, metadata,"\n",10*"=*")
-        print("TEST")
         # If StreamFlow has been configured for this cell, store its configuration
         workflow_config = (
             parent["metadata"]
@@ -120,7 +120,7 @@ class WorkflowIPythonKernel(IPythonKernel):
                         if k != "cell_id"
                     }
                 )
-            except BaseException as e:
+            except WorkflowDefinitionException as e:
                 self.log.error(str(e))
                 return metadata
             metadata["sf_token"] = self.shell.wf_cell_config.set(
@@ -138,34 +138,30 @@ class WorkflowIPythonKernel(IPythonKernel):
         return super().finish_metadata(parent, metadata, reply_content)
 
     async def workflow_request(self, stream, ident, parent):
-        try:
-            content = parent["content"]
-            notebook = content["notebook"]
-        except BaseException as e:
-            self.log.error(e)
-            self.log.error("%s", parent)
+        if notebook := parent.get("content", {}).get("notebook"):
+            metadata = self.init_metadata(parent)
+            reply_content = await self.do_workflow(notebook, ident, parent)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            if self._execute_sleep:
+                time.sleep(self._execute_sleep)
+            # Send the reply.
+            reply_content = json_clean(reply_content)
+            metadata = self.finish_metadata(parent, metadata, reply_content)
+            reply_msg = self.session.msg(
+                "execute_reply", reply_content, parent=parent, metadata=metadata
+            )
+            self.session.send(stream, reply_msg, ident=ident)
+            self.log.debug("%s", reply_msg)
+        else:
+            self.log.error("Invalid workflow definition: %s", parent)
             return
-        metadata = self.init_metadata(parent)
-        reply_content = await self.do_workflow(notebook, ident, parent)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        if self._execute_sleep:
-            time.sleep(self._execute_sleep)
-        # Send the reply.
-        reply_content = json_clean(reply_content)
-        metadata = self.finish_metadata(parent, metadata, reply_content)
-        reply_msg = self.session.msg(
-            "execute_reply", reply_content, parent=parent, metadata=metadata
-        )
-        self.session.send(stream, reply_msg, ident=ident)
-        self.log.debug("%s", reply_msg)
 
     async def do_workflow(self, notebook, ident, parent):
         shell = self.shell
         reply_content = {}
         parent["content"]["workflow"] = {}
         for cell in notebook["cells"]:
-            print("CELLA NAME", cell["metadata"]["cell_id"])
             parent["content"]["workflow"]["cell_id"] = cell["metadata"]["cell_id"]
             self.set_parent(ident, parent)
         res = await shell.run_workflow(notebook)

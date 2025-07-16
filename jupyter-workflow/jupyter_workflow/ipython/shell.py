@@ -1,24 +1,27 @@
+from __future__ import annotations
+
 import ast
 import asyncio
 import os
 import posixpath
 import sys
+from collections.abc import MutableMapping
 from contextvars import ContextVar
 from io import FileIO, TextIOWrapper
-from typing import Any, List, MutableMapping, Tuple, cast
+from typing import Any, cast
 
 import streamflow.log_handler
 import traitlets
+from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython.core.error import InputRejected
 from IPython.core.interactiveshell import ExecutionResult
-from ipykernel.zmqshell import ZMQInteractiveShell
 from streamflow.core import utils
 from streamflow.core.context import StreamFlowContext
-from streamflow.core.deployment import LOCAL_LOCATION, Location
+from streamflow.core.deployment import ExecutionLocation, LocalTarget
 from streamflow.core.exception import WorkflowDefinitionException
 from streamflow.core.workflow import Token, Workflow
-from streamflow.data.data_manager import DefaultDataManager
-from streamflow.deployment.deployment_manager import DefaultDeploymentManager
+from streamflow.data import DefaultDataManager
+from streamflow.deployment import DefaultDeploymentManager
 from streamflow.persistence import SqliteDatabase
 from streamflow.recovery.checkpoint_manager import DummyCheckpointManager
 from streamflow.recovery.failure_manager import DummyFailureManager
@@ -120,12 +123,14 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
         super().__init__(**kwargs)
         self.context: StreamFlowContext = build_context()
         self.context.data_manager.register_path(
-            location=Location(LOCAL_LOCATION, os.path.join(executor.__file__)),
+            location=ExecutionLocation(
+                deployment=LocalTarget.deployment_name, local=True, name="__LOCAL__"
+            ),
             path=os.path.join(executor.__file__),
             relpath=os.path.basename(executor.__file__),
         )
         self.wf_cell_config: ContextVar[MutableMapping[str, Any]] = ContextVar(
-            "wf_cell_config", default={}
+            "wf_cell_config"
         )
         self.sys_excepthook = None
 
@@ -139,7 +144,7 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
         self,
         cell_name: str,
         compiler,
-        ast_nodes: List[Tuple[ast.AST, str]],
+        ast_nodes: list[tuple[ast.AST, str]],
         cell_config: MutableMapping[str, Any],
     ):
         # Build the step target from metadata
@@ -192,7 +197,7 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
                 self.displayhook(self.user_ns["Out"][self.execution_count])
             # Update the other variables
             self.user_ns.update(outputs)
-        except BaseException:
+        except Exception:
             # Print output log
             output = next(
                 iter((await _get_outputs(workflow, executor.CELL_OUTPUT)).values())
@@ -258,13 +263,13 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
     # noinspection PyProtectedMember
     async def run_ast_nodes(
         self,
-        nodelist: List[ast.stmt],
+        nodelist: list[ast.stmt],
         cell_name: str,
         interactivity="last_expr",
         compiler=compile,
         result=None,
     ):
-        cell_config = self.wf_cell_config.get() or {}
+        cell_config = self.wf_cell_config.get({})
         if "step" in cell_config:
             if not nodelist:
                 return
@@ -277,7 +282,7 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
                     ast_nodes=to_run,
                     cell_config=cell_config,
                 )
-            except BaseException:
+            except Exception:
                 if result:
                     result.error_before_exec = sys.exc_info()[1]
                 self.showtraceback()
@@ -304,8 +309,9 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
                     cell_name = self.compile.cache(
                         cell, self.execution_count, raw_code=cell
                     )
-                    code_ast = self.compile.ast_parse(cell, filename=cell_name)
-                    code_ast = self.transform_ast(code_ast)
+                    code_ast = self.transform_ast(
+                        self.compile.ast_parse(cell, filename=cell_name)
+                    )
                     to_run = _classify_nodes(code_ast.body, interactivity)
                     jupyter_cells.append(
                         JupyterCell(
@@ -373,7 +379,7 @@ class StreamFlowInteractiveShell(ZMQInteractiveShell):
                     outputs.keys(), await asyncio.gather(*outputs.values())
                 ):
                     self.user_ns[out_name] = get_token_value(out_value)
-            except BaseException:
+            except Exception:
                 if result:
                     result.error_before_exec = sys.exc_info()[1]
                 self.showtraceback()

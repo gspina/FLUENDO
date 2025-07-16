@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "config_schema.json",
+  "type": "object",
+  "$defs": {
+    "deployment": {
+      "$id": "#/$defs/deployment",
+      "title": "Deployment",
+      "type": "object",
+      "$defs": {},
+      "properties": {
+        "external": {
+          "type": "boolean",
+          "description": "If set, StreamFlow does not manage the lifecycle of the execution environment. This means that all required services must be up and running when the workflow starts",
+          "default": false
+        },
+        "type": {
+          "type": "string"
+        },
+        "workdir": {
+          "type": "string",
+          "description": "Path to the working directory.",
+          "default": "${TMPDIR}/streamflow"
+        }
+      },
+      "$comment": "The `config` property is injected by each Connector extension",
+      "required": [
+        "type",
+        "config"
+      ]
+    },
+    "scatter": {
+      "$id": "#/$defs/scatter",
+      "title": "Scatter",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "oneOf": [
+                  {
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The variable that must be scattered"
+                      },
+                      "size": {
+                        "description": "The size of each shard (for now, multi-dimensional shards are not supported)",
+                        "type": "integer",
+                        "default": "1"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The variable that must be scattered"
+                      },
+                      "num": {
+                        "description": "The number of shards",
+                        "type": "integer",
+                        "default": "The length of the list"
+                      }
+                    }
+                  }
+                ],
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "type": "object",
+                "$ref": "#/$defs/scatter"
+              }
+            ]
+          }
+        },
+        "method": {
+          "type": "string",
+          "description": "In case of multiple scatter variables, how they must be combined",
+          "enum": [
+            "cartesian",
+            "dotproduct"
+          ],
+          "default": "cartesian"
+        }
+      }
+    },
+    "serializer": {
+      "$id": "#/$defs/serializer",
+      "title": "Serializer",
+      "type": "object",
+      "properties": {
+        "predump": {
+          "type": "string"
+        },
+        "postload": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "name",
+            "file"
+          ],
+          "default": "name"
+        }
+      }
+    },
+    "step": {
+      "$id": "#/$defs/step",
+      "title": "Step",
+      "type": "object",
+      "properties": {
+        "background": {
+          "type": "boolean",
+          "default": false,
+          "description": "A cell without output ports can run in background when the notebook is in interactive mode. Note that this has no effect in workflow mode"
+        },
+        "in": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "serializer": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "$ref": "#/$defs/serializer"
+                      }
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "control",
+                      "env",
+                      "name",
+                      "file"
+                    ],
+                    "default": "name"
+                  },
+                  "value": {},
+                  "valueFrom": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "autoin": {
+          "type": "boolean",
+          "default": true
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "serializer": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "$ref": "#/$defs/serializer"
+                      }
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "control",
+                      "name",
+                      "file"
+                    ],
+                    "default": "name"
+                  },
+                  "value": {},
+                  "valueFrom": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "uniqueItems": true
+        },
+        "scatter": {
+          "type": "object",
+          "$ref": "#/$defs/scatter"
+        },
+        "workdir": {
+          "type": "string",
+          "description": "Path to the working directory",
+          "default": "${TMPDIR}/streamflow"
+        }
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "$id": "#/$defs/target",
+      "title": "Target",
+      "type": "object",
+      "properties": {
+        "deployment": {
+          "$id": "#/properties/deployment",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "$ref": "#/$defs/deployment"
+            }
+          ]
+        },
+        "locations": {
+          "type": "integer",
+          "description": "If greater than one, the STREAMFLOW_HOSTS variable contains the comma-separated list of nodes allocated for the task",
+          "default": 1
+        },
+        "service": {
+          "type": "string"
+        },
+        "workdir": {
+          "type": "string",
+          "description": "Path to the working directory. It overrides the deployment-level setting.",
+          "default": "${TMPDIR}/streamflow"
+        }
+      },
+      "required": [
+        "deployment"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "interpreter": {
+      "$id": "#/properties/interpreter",
+      "type": "string",
+      "default": "ipython"
+    },
+    "deployments": {
+      "$id": "#/properties/deployments",
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9._-]*$": {
+          "$ref": "#/$defs/deployment"
+        }
+      },
+      "additionalProperties": false
+    },
+    "serializers": {
+      "$id": "#/properties/serializers",
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9._-]*$": {
+          "$ref": "#/$defs/serializer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "step": {
+      "$id": "#/properties/step",
+      "type": "object",
+      "$ref": "#/$defs/step"
+    },
+    "target": {
+      "$id": "#/properties/target",
+      "type": "object",
+      "$ref": "#/$defs/target"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "version"
+  ],
+  "additionalProperties": false
+}

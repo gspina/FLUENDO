@@ -6,9 +6,11 @@ import codeop
 import json
 import sys
 from abc import ABC, abstractmethod
-from typing import Any, MutableMapping, cast
+from collections.abc import MutableMapping
+from typing import Any, cast
 
 import cloudpickle as pickle
+from streamflow.core.command import CommandOutput, CommandOutputProcessor
 from streamflow.core.context import StreamFlowContext
 from streamflow.core.exception import (
     WorkflowDefinitionException,
@@ -17,8 +19,6 @@ from streamflow.core.exception import (
 from streamflow.core.persistence import DatabaseLoadingContext
 from streamflow.core.utils import get_class_from_name, get_class_fullname
 from streamflow.core.workflow import (
-    CommandOutput,
-    CommandOutputProcessor,
     Job,
     Port,
     Status,
@@ -31,7 +31,6 @@ from streamflow.workflow.port import JobPort
 from streamflow.workflow.step import (
     BaseStep,
     DefaultCommandOutputProcessor,
-    ScatterStep,
     TransferStep,
 )
 from streamflow.workflow.token import FileToken, ListToken
@@ -87,14 +86,11 @@ class JupyterInputInjectorStep(BaseStep, ABC):
     async def _save_additional_params(
         self, context: StreamFlowContext
     ) -> MutableMapping[str, Any]:
-        return {
-            **await super()._save_additional_params(context),
-            **{
-                "context_port": self.get_input_port("__context__").persistent_id,
-                "job_port": self.get_input_port("__job__").persistent_id,
-                "value": self.value,
-                "value_from": self.value_from,
-            },
+        return cast(dict, await super()._save_additional_params(context)) | {
+            "context_port": self.get_input_port("__context__").persistent_id,
+            "job_port": self.get_input_port("__job__").persistent_id,
+            "value": self.value,
+            "value_from": self.value_from,
         }
 
     def add_output_port(self, name: str, port: Port) -> None:
@@ -310,25 +306,22 @@ class JupyterNotebookStep(BaseStep):
     async def _save_additional_params(
         self, context: StreamFlowContext
     ) -> MutableMapping[str, Any]:
-        return {
-            **await super()._save_additional_params(context),
-            **{
-                "ast_nodes": pickle.dumps(self.ast_nodes),
-                "autoawait": self.autoawait,
-                "compiler": get_class_fullname(type(self.compiler)),
-                "context_port": self.get_input_port("__context__").persistent_id,
-                "output_processors": {
-                    k: v
-                    for k, v in zip(
-                        self.output_processors.keys(),
-                        await asyncio.gather(
-                            *(
-                                asyncio.create_task(p.save(context))
-                                for p in self.output_processors.values()
-                            )
-                        ),
-                    )
-                },
+        return cast(dict, await super()._save_additional_params(context)) | {
+            "ast_nodes": pickle.dumps(self.ast_nodes),
+            "autoawait": self.autoawait,
+            "compiler": get_class_fullname(type(self.compiler)),
+            "context_port": self.get_input_port("__context__").persistent_id,
+            "output_processors": {
+                k: v
+                for k, v in zip(
+                    self.output_processors.keys(),
+                    await asyncio.gather(
+                        *(
+                            asyncio.create_task(p.save(context))
+                            for p in self.output_processors.values()
+                        )
+                    ),
+                )
             },
         }
 
@@ -369,19 +362,6 @@ class JupyterNotebookStep(BaseStep):
         )
 
 
-class JupyterScatterStep(ScatterStep):
-    def _scatter(self, token: Token):
-        if isinstance(token.value, Token):
-            self._scatter(token.value)
-        elif isinstance(token, ListToken):
-            output_port = self.get_output_port()
-            for i, t in enumerate(token.value):
-                t = t.retag(token.tag + "." + str(i))
-                output_port.put(t.update([t.value]))
-        else:
-            raise WorkflowDefinitionException("Scatter ports require iterable inputs")
-
-
 class JupyterTransferStep(TransferStep):
     async def _transfer(self, job: Job, path: str):
         dst_connector = self.workflow.context.scheduler.get_connector(job.name)
@@ -391,10 +371,8 @@ class JupyterTransferStep(TransferStep):
             path=path, dst_deployment=dst_connector.deployment_name
         )
         dst_path = dst_path_processor.join(job.input_directory, source_location.relpath)
-        logger.error(source_location.path)
-        logger.error(dst_path)
         await self.workflow.context.data_manager.transfer_data(
-            src_locations=[source_location],
+            src_location=source_location.location,
             src_path=source_location.path,
             dst_locations=dst_locations,
             dst_path=dst_path,
