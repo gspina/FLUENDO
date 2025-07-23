@@ -11,5 +11,6 @@ requests==2.32.3
 tqdm==4.67.1
 typing_extensions==4.5.0
 urllib3==2.4.0
-tensorflow-federated==0.87.0
-tensorflow<=2.15.0
+# tensorflow-federated==0.87.0
+tensorflow
+tensorflow_datasets
